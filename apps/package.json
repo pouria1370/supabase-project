@@ -1,0 +1,7 @@
+{
+  "name": "supabase-project",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ]
+}

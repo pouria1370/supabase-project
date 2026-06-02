@@ -1,0 +1,43 @@
+.navbar {
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 2rem;
+
+  background: white;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+}
+
+.navbar-logo {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.logout-btn {
+  border: none;
+  padding: 10px 16px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  color: white;
+  background: #dc2626;
+
+  font-weight: 600;
+}
+
+.logout-btn:hover {
+  opacity: 0.9;
+}

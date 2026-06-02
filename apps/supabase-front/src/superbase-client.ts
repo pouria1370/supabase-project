@@ -8,8 +8,8 @@ const deleteTask = (id: number) => {
 const updateTask = (id: number, title: string) => {
   return supabase.from("tasks").update({ title }).eq("id", id);
 };
-const insertTask = (title: string) => {
-  return supabase.from("tasks").insert({ title }).single();
+const insertTask = (title: string, email: string) => {
+  return supabase.from("tasks").insert({ title, email }).single();
 };
 const getTask = () => {
   return supabase
@@ -17,4 +17,4 @@ const getTask = () => {
     .select("*")
     .order("created_at", { ascending: true });
 };
-export { deleteTask, insertTask, updateTask, getTask };
+export { deleteTask, insertTask, updateTask, getTask, supabase };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import "./TaskManager.css";
 import type { Task } from "../types";
 import * as Crud from "../superbase-client";
@@ -9,6 +9,7 @@ export default function TaskManager({ session }: { session: any }) {
    */
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState<string>(null);
+  const [uploadedFile, setUploadedFiled] = useState<File | null>(null);
   const [editedTask, setEditedTask] = useState<{ title: string; id: number }>(
     null,
   );
@@ -22,11 +23,30 @@ export default function TaskManager({ session }: { session: any }) {
 
     return setTasks(tasks);
   };
+  const handleImageUrl = async (file: File): Promise<string | null> => {
+    const path = `${file.name}-${Date.now()}`;
+    const { error } = await Crud.supabase.storage
+      .from("task-images")
+      .upload(path, file);
+    if (error) {
+      alert(" there is one probleme in during the uploading the file");
+    }
+    const imageUrl = await Crud.supabase.storage
+      .from("task-images")
+      .getPublicUrl(path);
+
+    return imageUrl.data.publicUrl;
+  };
   const handleInsertTask = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    // first we need to grab the image_url
+    const imageUrl = await handleImageUrl(uploadedFile);
     if (!title.trim()) return;
-    const taskStatus = await Crud.insertTask(title, session?.user?.email);
+    const taskStatus = await Crud.insertTask(
+      title,
+      session?.user?.email,
+      imageUrl,
+    );
     if (taskStatus.success) {
       await handleFetchTasks();
       setTitle(null);
@@ -53,6 +73,12 @@ export default function TaskManager({ session }: { session: any }) {
       alert("try again");
     }
   };
+  const handleUploadFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    // first check if we have file
+    if (event.target.files && event.target.files.length > 0) {
+      setUploadedFiled(event.target.files[0]);
+    }
+  };
 
   /**
    *  --------------------- Side - Effects ---------------------
@@ -61,6 +87,10 @@ export default function TaskManager({ session }: { session: any }) {
   useEffect(() => {
     handleFetchTasks();
   }, []);
+  useEffect(() => {
+    const channnel = Crud.supabase.channel("");
+  }, []);
+
   return (
     <div className="task-container">
       <h2>Task Manager</h2>
@@ -72,6 +102,7 @@ export default function TaskManager({ session }: { session: any }) {
           placeholder="Enter task title..."
           onChange={(e) => setTitle(e.target.value)}
         />
+        <input type="file" accept="image/*" onChange={handleUploadFile} />
 
         {title && <button type="submit">Create Task</button>}
       </form>
@@ -82,6 +113,7 @@ export default function TaskManager({ session }: { session: any }) {
             {task?.id !== editedTask?.id && (
               <li key={task.id} className="task-item">
                 <span>{task.title}</span>
+                <img src={task?.image_url} width={75} height={100} />
 
                 {
                   <div className="task-actions">

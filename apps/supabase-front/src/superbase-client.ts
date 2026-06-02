@@ -8,8 +8,11 @@ const deleteTask = (id: number) => {
 const updateTask = (id: number, title: string) => {
   return supabase.from("tasks").update({ title }).eq("id", id);
 };
-const insertTask = (title: string, email: string) => {
-  return supabase.from("tasks").insert({ title, email }).single();
+const insertTask = (title: string, email: string, imageUrl?: string) => {
+  return supabase
+    .from("tasks")
+    .insert({ title, email, image_url: imageUrl })
+    .single();
 };
 const getTask = () => {
   return supabase

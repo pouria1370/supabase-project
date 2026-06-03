@@ -26,13 +26,13 @@ export default function TaskManager({ session }: { session: any }) {
   const handleImageUrl = async (file: File): Promise<string | null> => {
     const path = `${file.name}-${Date.now()}`;
     const { error } = await Crud.supabase.storage
-      .from("task-images")
+      .from("images")
       .upload(path, file);
     if (error) {
       alert(" there is one probleme in during the uploading the file");
     }
     const imageUrl = await Crud.supabase.storage
-      .from("task-images")
+      .from("images")
       .getPublicUrl(path);
 
     return imageUrl.data.publicUrl;
@@ -48,7 +48,6 @@ export default function TaskManager({ session }: { session: any }) {
       imageUrl,
     );
     if (taskStatus.success) {
-      await handleFetchTasks();
       setTitle(null);
     } else {
       setTitle(null);
@@ -59,7 +58,6 @@ export default function TaskManager({ session }: { session: any }) {
     const updateStatus = await Crud.updateTask(task.id, task.title);
     if (updateStatus.success) {
       (setOpen(false), setEditedTask(null));
-      await handleFetchTasks();
     } else {
       alert("try again");
     }
@@ -68,7 +66,7 @@ export default function TaskManager({ session }: { session: any }) {
   const handleDeleteTask = async (id: number) => {
     const updateStatus = await Crud.deleteTask(id);
     if (updateStatus.success) {
-      await handleFetchTasks();
+      // await handleFetchTasks();
     } else {
       alert("try again");
     }
@@ -88,7 +86,41 @@ export default function TaskManager({ session }: { session: any }) {
     handleFetchTasks();
   }, []);
   useEffect(() => {
-    const channnel = Crud.supabase.channel("");
+    const channel = Crud.supabase.channel("tasks").on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "tasks",
+      },
+      (payload) => {
+        switch (payload.eventType) {
+          case "INSERT":
+            setTasks((prev) => [...prev, payload.new as Task]);
+            break;
+
+          case "UPDATE":
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === payload.new.id ? (payload.new as Task) : task,
+              ),
+            );
+            break;
+
+          case "DELETE":
+            setTasks((prev) =>
+              prev.filter((task) => task.id !== payload.old.id),
+            );
+            break;
+        }
+      },
+    );
+
+    channel.subscribe();
+
+    return () => {
+      Crud.supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
@@ -108,7 +140,7 @@ export default function TaskManager({ session }: { session: any }) {
       </form>
 
       <ul className="task-list">
-        {tasks.map((task) => (
+        {tasks?.map((task) => (
           <>
             {task?.id !== editedTask?.id && (
               <li key={task.id} className="task-item">

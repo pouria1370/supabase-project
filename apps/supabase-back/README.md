@@ -1,15 +1,9 @@
-# supabse-backend
+# Supabase Backend (Bun)
 
-To install dependencies:
+This service handles server-side logic using Bun.
 
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.3.9. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+- **Runtime:** Bun v1.3.9
+- **Integration:** Connects to PostgreSQL via Supabase.
+- **Commands:**
+  - `bun install`
+  - `bun run index.ts`
